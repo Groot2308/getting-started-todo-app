@@ -6,13 +6,13 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/Groot2308/getting-started-todo-app.git'
             }
         }
-       stage('SonarQube analysis') {
+        stage('SonarQube analysis') {
             environment {
                 SCANNER_HOME = tool 'sonarqube-scanner'
             }
             steps {
                 withSonarQubeEnv(installationName: 'sonarqubedemo') {
-                    sh '''$SCANNER_HOME/bin/sonar-scanner \  
+                    sh '''$SCANNER_HOME/bin/sonar-scanner'''
                 }
             }
         }
