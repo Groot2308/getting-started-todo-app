@@ -11,7 +11,6 @@ pipeline {
         }
         stage('Build') {
             steps {
-                // Các bước build của bạn
                 sh './gradlew build'
             }
         }
