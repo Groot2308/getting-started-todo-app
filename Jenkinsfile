@@ -1,18 +1,15 @@
 pipeline {
-        agent any
+    agent any
     environment {
         SONARQUBE_SCANNER_HOME = tool 'sonarqubedemo'
     }
-
     stages {
         stage('Clone repository') {
             steps {
-               git branch: 'main', url: 'https://github.com/Groot2308/getting-started-todo-app.git'
+                git branch: 'main', url: 'https://github.com/Groot2308/getting-started-todo-app.git'
             }
         }
-    }
-
-    stage('Build') {
+        stage('Build') {
             steps {
                 // Các bước build của bạn
                 sh './gradlew build'
@@ -25,4 +22,5 @@ pipeline {
                 }
             }
         }
+    }
 }
