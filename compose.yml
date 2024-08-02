@@ -115,7 +115,6 @@ services:
       traefik.http.routers.client.rule: Host(`localhost`)
       traefik.http.services.client.loadbalancer.server.port: 5173
 
-
   ###################################################
   # Service: mysql
   #
@@ -165,12 +164,35 @@ services:
       traefik.http.routers.phpmyadmin.rule: Host(`db.localhost`)
       traefik.http.services.phpmyadmin.loadbalancer.server.port: 80
 
+  ###################################################
+  # Service: jenkins
+  #
+  # This service provides the Jenkins CI server for building and deploying the application.
+  # The image for this service comes directly from Docker Hub and is a Docker Official Image.
+  #
+  # The environment variables configure Jenkins to use the provided credentials
+  # for initial setup and authentication.
+  #
+  # The volumes section maps the Jenkins home directory to a named volume to persist
+  # Jenkins data across container restarts.
+  #
+  # The ports section maps Jenkins' web interface port to the host machine.
+  ###################################################
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins-data:/var/jenkins_home
+
 ###################################################
 # Volumes
 #
-# For this application stack, we only have one volume. It's used to persist the
-# data for the MySQL service. We are only going to use the default values,
-# hence the lack of any configuration for the volume.
+# For this application stack, we have volumes for persisting data.
+# We use volumes to ensure data is not lost when services are restarted.
 ###################################################
 volumes:
   todo-mysql-data:
+  jenkins-data:
