@@ -11,14 +11,14 @@ pipeline {
                 SCANNER_HOME = tool 'scanner'
             }
             steps {
-                withSonarQubeEnv(installationName: 'sonarqubedemo') {
+                withSonarQubeEnv(installationName: '') {
                     sh '$SCANNER_HOME/bin/sonar-scanner'
                 }
             }
         } 
     }
 
-    
+
 }
 
 
