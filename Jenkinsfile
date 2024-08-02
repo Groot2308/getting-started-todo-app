@@ -8,4 +8,12 @@ pipeline {
             }
         }
     }
+
+    stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('Local SonarQube') {
+                    sh '${SONARQUBE_SCANNER_HOME}/bin/sonar-scanner'
+                }
+            }
+        }
 }

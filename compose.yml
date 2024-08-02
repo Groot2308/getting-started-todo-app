@@ -186,6 +186,44 @@ services:
       - "50000:50000"
     volumes:
       - jenkins-data:/var/jenkins_home
+       ###################################################
+  # Service: sonarqube
+  #
+  # This service provides the SonarQube server for code quality analysis.
+  # The image for this service comes directly from Docker Hub.
+  #
+  # The environment variables configure SonarQube to use PostgreSQL as its database.
+  # The ports section maps SonarQube's web interface port to the host machine.
+  ###################################################
+  sonarqube:
+    image: sonarqube:latest
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonarqube-db:5432/sonarqube
+      SONAR_JDBC_USERNAME: sonarqube
+      SONAR_JDBC_PASSWORD: sonarqube
+    ports:
+      - "9000:9000"
+    depends_on:
+      - sonarqube-db
+
+  ###################################################
+  # Service: sonarqube-db
+  #
+  # This service provides the PostgreSQL database for SonarQube.
+  # The image for this service comes directly from Docker Hub.
+  #
+  # The environment variables configure the database user, password, and name.
+  # The volumes section maps the PostgreSQL data directory to a named volume to persist
+  # database data across container restarts.
+  ###################################################
+  sonarqube-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: sonarqube
+      POSTGRES_PASSWORD: sonarqube
+      POSTGRES_DB: sonarqube
+    volumes:
+      - sonarqube-postgres-data:/var/lib/postgresql/data
 
 ###################################################
 # Volumes
@@ -196,3 +234,4 @@ services:
 volumes:
   todo-mysql-data:
   jenkins-data:
+  sonarqube-postgres-data:
