@@ -12,11 +12,10 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv(installationName: 'sonarqubedemo') {
-                    sh '''$SCANNER_HOME/bin/sonar-scanner'''
+                    sh '$SCANNER_HOME/bin/sonar-scanner'
                 }
             }
-        }
-        
+        } 
     }
 }
 
