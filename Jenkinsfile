@@ -25,6 +25,8 @@ pipeline {
                 }
             }
         }    
+
+        
         stage('Build') {
             steps {
                 sh 'docker build -t danghoan2308/todoapp:latest .'
