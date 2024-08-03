@@ -24,7 +24,14 @@ pipeline {
                     '''
                 }
             }
-        }    
+        }  
+
+        stage('Check Docker Path') {
+            steps {
+                sh 'echo $PATH'
+                sh 'which docker'
+            }
+        }  
 
 
         stage('Build') {
