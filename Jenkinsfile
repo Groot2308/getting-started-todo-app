@@ -22,5 +22,12 @@ pipeline {
                 }
             }
         }
+        stage('Build docker hub') {
+            steps {
+                withDockerRegistry(credentialsId: 'docker-hub', url: 'https://index.docker.io/v1/') {
+                    sh 'docker build -t danghoan2308/todoapp:v1 .'
+                    sh 'docker push danghoan2308/todoapp:v1'
+            }
+        }
     }
 }
