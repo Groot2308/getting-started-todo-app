@@ -30,8 +30,7 @@ pipeline {
                 sh 'echo $PATH'
                 sh 'which docker'
             }
-        } 
-         
+        }         
         stage('Build') {
             steps {
                 sh 'docker build -t danghoan2308/todoapp:latest .'
@@ -42,7 +41,6 @@ pipeline {
                 sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
             }
         }
-
         stage('Push') {
             steps {
                sh 'docker push danghoan2308/todoapp:latest'
