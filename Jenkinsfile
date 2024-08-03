@@ -1,5 +1,12 @@
 pipeline {
     agent any
+
+    environment{
+        DOCKERHUB_CREDENTIALS = credentials('docker-hubregistry')
+    }
+
+
+
     stages {
         stage('Clone repository') {
             steps {
@@ -22,13 +29,20 @@ pipeline {
                 }
             }
         }
-        
-        stage('Build docker hub') {
+        stage('Build') {
             steps {
-                withDockerRegistry(credentialsId: 'docker-hub', url: 'https://index.docker.io/v1/') {
-                    sh label: '', script: 'docker build -t danghoan2308/todoapp:v1 .'
-                    sh label: '', script: 'docker push danghoan2308/todoapp:v1'
-                }
+                sh 'docker build -t danghoan2308/todoapp:lastest'
+            }
+        }
+        stage('Login') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            }
+        }
+
+        stage('Push') {
+            steps {
+               sh 'docker push danghoan2308/todoapp:lastest'
             }
         }
     }
