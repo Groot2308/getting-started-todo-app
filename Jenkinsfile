@@ -24,8 +24,7 @@ pipeline {
                     '''
                 }
             }
-        }  
-        
+        }       
         stage('Check Docker Path') {
             steps {
                 sh 'echo $PATH'
