@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        docker { image 'node:20.16.0-alpine3.20' }
+    }
 
     environment{
         DOCKERHUB_CREDENTIALS = credentials('docker-hubregistry')
