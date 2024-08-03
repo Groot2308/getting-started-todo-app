@@ -1,9 +1,9 @@
 pipeline {
     agent any
 
-    // environment{
-    //     DOCKERHUB_CREDENTIALS = credentials('docker-hubregistry')
-    // }
+    environment{
+        DOCKERHUB_CREDENTIALS = credentials('docker-hubregistry')
+    }
 
 
 
@@ -29,29 +29,29 @@ pipeline {
                 }
             }
         }
-        stage('Build Docker hub') {
+        // stage('Build Docker hub') {
+        //     steps {
+        //        withDockerRegistry(credentialsId: 'docker-hubregistry', url: 'https://index.docker.io/v1/') {
+        //         sh 'docker build -t danghoan2308/todoapp:lastest'
+        //         sh 'docker push danghoan2308/todoapp:lastest'
+        //        }
+        //     }
+        // }
+        stage('Build') {
             steps {
-               withDockerRegistry(credentialsId: 'docker-hubregistry', url: 'https://index.docker.io/v1/') {
                 sh 'docker build -t danghoan2308/todoapp:lastest'
-                sh 'docker push danghoan2308/todoapp:lastest'
-               }
             }
         }
-        // stage('Build') {
-        //     steps {
-        //         sh 'docker build -t danghoan2308/todoapp:lastest'
-        //     }
-        // }
-        // stage('Login') {
-        //     steps {
-        //         sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-        //     }
-        // }
+        stage('Login') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            }
+        }
 
-        // stage('Push') {
-        //     steps {
-        //        sh 'docker push danghoan2308/todoapp:lastest'
-        //     }
-        // }
+        stage('Push') {
+            steps {
+               sh 'docker push danghoan2308/todoapp:lastest'
+            }
+        }
     }
 }
