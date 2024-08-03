@@ -39,11 +39,13 @@ services:
   ###################################################
   proxy:
     image: traefik:v2.11
-    command: --providers.docker
+    command:
+      - --providers.docker
+      - --entrypoints.web.address=:80
     ports:
-      - 80:80
+      - "80:80"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - //var/run/docker.sock:/var/run/docker.sock
 
   ###################################################
   # Service: backend
