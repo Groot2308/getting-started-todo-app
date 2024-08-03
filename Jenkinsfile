@@ -32,14 +32,14 @@ pipeline {
         // stage('Build Docker hub') {
         //     steps {
         //        withDockerRegistry(credentialsId: 'docker-hubregistry', url: 'https://index.docker.io/v1/') {
-        //         sh 'docker build -t danghoan2308/todoapp:lastest'
-        //         sh 'docker push danghoan2308/todoapp:lastest'
+        //         sh 'docker build -t danghoan2308/todoapp:latest'
+        //         sh 'docker push danghoan2308/todoapp:latest'
         //        }
         //     }
         // }      
         stage('Build') {
             steps {
-                sh 'docker build -t danghoan2308/todoapp:lastest .'
+                sh 'docker build -t danghoan2308/todoapp:latest .'
             }
         }
         stage('Login') {
@@ -50,7 +50,7 @@ pipeline {
 
         stage('Push') {
             steps {
-               sh 'docker push danghoan2308/todoapp:lastest'
+               sh 'docker push danghoan2308/todoapp:latest'
             }
         }
     }
