@@ -36,8 +36,7 @@ pipeline {
         //         sh 'docker push danghoan2308/todoapp:lastest'
         //        }
         //     }
-        // }
-        
+        // }      
         stage('Build') {
             steps {
                 sh 'docker build -t danghoan2308/todoapp:lastest .'
