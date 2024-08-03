@@ -31,7 +31,7 @@ pipeline {
         }
         stage('Build Docker hub') {
             steps {
-               withDockerRegistry(credentialsId: 'docker-hubregistry', toolName: 'docker-hub', url: 'https://index.docker.io/v1/') {
+               withDockerRegistry(credentialsId: 'docker-hubregistry', url: 'https://index.docker.io/v1/') {
                 sh 'docker build -t danghoan2308/todoapp:lastest'
                 sh 'docker push danghoan2308/todoapp:lastest'
                }
