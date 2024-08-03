@@ -17,19 +17,18 @@ pipeline {
                       -Dsonar.projectKey=getting-started-todo-app \
                       -Dsonar.sources=. \
                       -Dsonar.host.url=http://172.27.0.9:9000 \
-                      -Dsonar.login=squ_32f68c911cdd370eb8dcec9a4b109e30d494b17d
+                      -Dsonar.token=squ_32f68c911cdd370eb8dcec9a4b109e30d494b17d
                     '''
                 }
             }
         }
-
         stage('Build docker hub') {
             steps {
                 withDockerRegistry(credentialsId: 'docker-hub', url: 'https://index.docker.io/v1/') {
-                    sh label: '',script: 'docker build -t danghoan2308/todoapp:v1 .'
-                    sh label: '',script: 'docker push danghoan2308/todoapp:v1'
+                    sh label: '', script: 'docker build -t danghoan2308/todoapp:v1 .'
+                    sh label: '', script: 'docker push danghoan2308/todoapp:v1'
+                }
             }
         }
     }
-}
 }
