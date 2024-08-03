@@ -30,7 +30,8 @@ pipeline {
                 sh 'echo $PATH'
                 sh 'which docker'
             }
-        }  
+        } 
+         
         stage('Build') {
             steps {
                 sh 'docker build -t danghoan2308/todoapp:latest .'
