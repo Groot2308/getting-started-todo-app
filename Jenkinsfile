@@ -37,9 +37,10 @@ pipeline {
         //        }
         //     }
         // }
+        
         stage('Build') {
             steps {
-                sh 'docker build -t danghoan2308/todoapp:lastest'
+                sh 'docker build -t danghoan2308/todoapp:lastest .'
             }
         }
         stage('Login') {
