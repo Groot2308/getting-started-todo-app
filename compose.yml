@@ -179,6 +179,9 @@ services:
   # The ports section maps Jenkins' web interface port to the host machine.
   ###################################################
   jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
     image: jenkins/jenkins:lts
     container_name: jenkins
     ports:
