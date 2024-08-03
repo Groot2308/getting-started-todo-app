@@ -8,5 +8,11 @@ RUN apt-get update && \
     apt-get install -y docker.io && \
     rm -rf /var/lib/apt/lists/*
 
-# Run Jenkins as non-root
-USER jenkins
+# Grant Jenkins user permissions to run Docker
+RUN usermod -aG docker jenkins
+
+# Make sure Jenkins runs with root permissions
+USER root
+
+# Start Jenkins
+CMD ["jenkins.sh"]
