@@ -1,199 +1,105 @@
+FROM jenkins:1.596
+ 
+USER root
+RUN apt-get update \
+      && apt-get install -y sudo \
+      && rm -rf /var/lib/apt/lists/*
+RUN echo "jenkins ALL=NOPASSWD: ALL" >> /etc/sudoers
+ 
+USER jenkins
+COPY plugins.txt /usr/share/jenkins/plugins.txt
+RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
+
+
 ###################################################
-# This Compose file provides the development environment for the todo app.
+# Stage: base
 # 
-# Seeing the final version of the application bundles the frontend with the
-# backend, we are able to "simulate" that by using a proxy to route requests
-# to the appropriate service. All requests to /api will be routed to the 
-# backend while all other requests will be sent to the client service. While
-# there is some overlap in the routing rules, the proxy determines the service
-# based on the most specific rule.
+# This base stage ensures all other stages are using the same base image
+# and provides common configuration for all stages, such as the working dir.
+###################################################
+FROM node:20 AS base
+WORKDIR /usr/local/app
+
+################## CLIENT STAGES ##################
+
+###################################################
+# Stage: client-base
 #
-# To support easier debugging and troubleshooting, phpMyAdmin is also included
-# to provide a web interface to the MySQL database.
+# This stage is used as the base for the client-dev and client-build stages,
+# since there are common steps needed for each.
+###################################################
+FROM base AS client-base
+COPY client/package.json client/yarn.lock ./
+RUN --mount=type=cache,id=yarn,target=/usr/local/share/.cache/yarn \
+    yarn install
+COPY client/.eslintrc.cjs client/index.html client/vite.config.js ./
+COPY client/public ./public
+COPY client/src ./src
+
+###################################################
+# Stage: client-dev
+# 
+# This stage is used for development of the client application. It sets 
+# the default command to start the Vite development server.
+###################################################
+FROM client-base AS client-dev
+CMD ["yarn", "dev"]
+
+###################################################
+# Stage: client-build
+#
+# This stage builds the client application, producing static HTML, CSS, and
+# JS files that can be served by the backend.
+###################################################
+FROM client-base AS client-build
+RUN yarn build
+
+
+
+
+###################################################
+################  BACKEND STAGES  #################
 ###################################################
 
 ###################################################
-# Services
+# Stage: backend-base
 #
-# The services define the individual components of our application stack.
-# For each service, a separate container will be launched.
+# This stage is used as the base for the backend-dev and test stages, since
+# there are common steps needed for each.
 ###################################################
-services:
+FROM base AS backend-dev
+COPY backend/package.json backend/yarn.lock ./
+RUN --mount=type=cache,id=yarn,target=/usr/local/share/.cache/yarn \
+    yarn install --frozen-lockfile
+COPY backend/spec ./spec
+COPY backend/src ./src
+CMD ["yarn", "dev"]
 
-    ###################################################
-    # Service: proxy
-    #
-    # This service is a reverse proxy that will route requests to the appropriate
-    # service. Think of it like a HTTP router or a load balancer. It simply 
-    # forwards requests and allows us to simulate the final version of the 
-    # application where the frontend and backend are bundled together. We can 
-    # also use it to route requests to phpMyAdmin, which won't be accessible at 
-    # localhost, but at db.localhost.
-    #
-    # The image for this service comes directly from Docker Hub and is a Docker
-    # Official Image. Since Traefik can be configured in a variety of ways, we
-    # configure it here to watch the Docker events for new containers and to use
-    # their labels for configuration. That's why the Docker socket is mounted.
-    #
-    # We also expose port 80 to connect to the proxy from the host machine.
-    ###################################################
-    proxy:
-      image: traefik:v2.11
-      command: --providers.docker
-      ports:
-        - 80:80
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-  
-    ###################################################
-    # Service: backend
-    # 
-    # This service is the Node.js server that provides the API for the app.
-    # When the container starts, it will use the image that results
-    # from building the Dockerfile, targeting the backend-dev stage.
-    #
-    # The Compose Watch configuration is used to automatically sync the code
-    # from the host machine to the container. This allows the server to be
-    # automatically reloaded when code changes are made.
-    #
-    # The environment variables configure the application to connect to the
-    # database, which is also configured in this Compose file. We obviously
-    # wouldn't hard-code these values in a non-production environment. But, in
-    # dev, these values are fine.
-    #
-    # Finally, the labels are used to configure Traefik (the reverse proxy) with
-    # the appropriate routing rules. In this case, all requests to localhost/api/*
-    # will be forwarded to this service's port 3000. 
-    ###################################################
-    backend:
-      build:
-        context: ./
-        target: backend-dev
-      environment:
-        MYSQL_HOST: mysql
-        MYSQL_USER: root
-        MYSQL_PASSWORD: secret
-        MYSQL_DB: todos
-      develop:
-        watch:
-          - path: ./backend/src
-            action: sync
-            target: /usr/local/app/src
-          - path: ./backend/package.json
-            action: rebuild
-      labels:
-        traefik.http.routers.backend.rule: Host(`localhost`) && PathPrefix(`/api`)
-        traefik.http.services.backend.loadbalancer.server.port: 3000
-  
-    ###################################################
-    # Service: client
-    #
-    # The client service is the React app that provides the frontend for the app.
-    # When the container starts, it will use the image that results from building
-    # the Dockerfile, targeting the dev stage.
-    #
-    # The Compose Watch configuration is used to automatically sync the code from
-    # the host machine to the container. This allows the client to be automatically
-    # reloaded when code changes are made.
-    # 
-    # The labels are used to configure Traefik (the reverse proxy) with the 
-    # appropriate routing rules. In this case, all requests to localhost will be
-    # forwarded to this service's port 5173.
-    ###################################################
-    client:
-      build:
-        context: ./
-        target: client-dev
-      develop:
-        watch:
-          - path: ./client/src
-            action: sync
-            target: /usr/local/app/src
-          - path: ./client/package.json
-            action: rebuild
-      labels:
-        traefik.http.routers.client.rule: Host(`localhost`)
-        traefik.http.services.client.loadbalancer.server.port: 5173
-  
-    ###################################################
-    # Service: mysql
-    #
-    # The MySQL service is used to provide the database for the application.
-    # The image for this service comes directly from Docker Hub and is a Docker 
-    # Official Image.
-    
-    # The data is persisted in a volume named todo-mysql-data. Using a volume 
-    # allows us to take down the services without losing the data. When we start
-    # the services again, the data will still be there (assuming we didn't delete
-    # the volume, of course!).
-    #
-    # The environment variables configure the root password and the name of the
-    # database to create. Since these are used only for local development, it's
-    # ok to hard-code them here.
-    ###################################################
-    mysql:
-      image: mysql:8.0
-      volumes:
-        - todo-mysql-data:/var/lib/mysql
-      environment: 
-        MYSQL_ROOT_PASSWORD: secret
-        MYSQL_DATABASE: todos
-  
-    ###################################################
-    # Service: phpmyadmin
-    #
-    # This service provides a web interface to the MySQL database. It's useful
-    # for debugging and troubleshooting data, schemas, and more. The image for 
-    # this service comes directly from Docker Hub and is a Docker Official Image.
-    #
-    # The environment variables configure the connection to the database and 
-    # provide the default credentials, letting us immediately open the interface
-    # without needing to log in.
-    #
-    # The labels are used to configure Traefik (the reverse proxy) with the
-    # routing rules. In this case, all requests to db.localhost will be forwarded
-    # to this service's port 80.
-    ###################################################
-    phpmyadmin:
-      image: phpmyadmin
-      environment:
-        PMA_HOST: mysql
-        PMA_USER: root
-        PMA_PASSWORD: secret
-      labels:
-        traefik.http.routers.phpmyadmin.rule: Host(`db.localhost`)
-        traefik.http.services.phpmyadmin.loadbalancer.server.port: 80
-  
-    ###################################################
-    # Service: jenkins
-    #
-    # This service provides the Jenkins CI server for building and deploying the application.
-    # The image for this service comes directly from Docker Hub and is a Docker Official Image.
-    #
-    # The environment variables configure Jenkins to use the provided credentials
-    # for initial setup and authentication.
-    #
-    # The volumes section maps the Jenkins home directory to a named volume to persist
-    # Jenkins data across container restarts.
-    #
-    # The ports section maps Jenkins' web interface port to the host machine.
-    ###################################################
-    jenkins:
-      image: jenkins/jenkins:lts
-      container_name: jenkins
-      ports:
-        - "8080:8080"
-        - "50000:50000"
-      volumes:
-        - jenkins-data:/var/jenkins_home
-  
-  ###################################################
-  # Volumes
-  #
-  # For this application stack, we have volumes for persisting data.
-  # We use volumes to ensure data is not lost when services are restarted.
-  ###################################################
-  volumes:
-    todo-mysql-data:
-    jenkins-data:
-  
+###################################################
+# Stage: test
+#
+# This stage runs the tests on the backend. This is split into a separate
+# stage to allow the final image to not have the test dependencies or test
+# cases.
+###################################################
+FROM backend-dev AS test
+RUN yarn test
+
+###################################################
+# Stage: final
+#
+# This stage is intended to be the final "production" image. It sets up the
+# backend and copies the built client application from the client-build stage.
+#
+# It pulls the package.json and yarn.lock from the test stage to ensure that
+# the tests run (without this, the test stage would simply be skipped).
+###################################################
+FROM base AS final
+ENV NODE_ENV=production
+COPY --from=test /usr/local/app/package.json /usr/local/app/yarn.lock ./
+RUN --mount=type=cache,id=yarn,target=/usr/local/share/.cache/yarn \
+    yarn install --production --frozen-lockfile
+COPY backend/src ./src
+COPY --from=client-build /usr/local/app/dist ./src/static
+EXPOSE 3000
+CMD ["node", "src/index.js"]
