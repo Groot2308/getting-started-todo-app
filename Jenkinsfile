@@ -34,13 +34,13 @@ pipeline {
         }
         stage('Build') {
             steps {
-                script {
+                // script {
                     // if (fileExists('/var/run/docker.sock')) {
                         sh 'docker build -t danghoan2308/todoapp:latest .'
                     // } else {
                     //     error 'Docker daemon không chạy hoặc không thể truy cập Docker socket.'
                     // }
-                }
+                // }
             }
         }
         stage('Login') {
