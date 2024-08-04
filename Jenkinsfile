@@ -20,41 +20,41 @@ pipeline {
                       -Dsonar.projectKey=getting-started-todo-app \
                       -Dsonar.sources=. \
                       -Dsonar.host.url=http://172.18.0.9:9000 \
-                      -Dsonar.login=squ_32f68c911cdd370eb8dcec9a4b109e30d494b17d
+                      -Dsonar.login=squ_d069760d5608a8af0b2abcddbed5af71bf0bd1d7
                     '''
                 }
             }
         }
-        stage('Check Docker Path') {
-            steps {
-                sh 'echo $PATH'
-                sh 'which docker'
-            }
-        }
-        stage('Build') {
-            steps {
-                script {
-                    if (fileExists('/var/run/docker.sock')) {
-                        sh 'docker build -t danghoan2308/todoapp:latest .'
-                    } else {
-                        error 'Docker daemon không chạy hoặc không thể truy cập Docker socket.'
-                    }
-                }
-            }
-        }
-        stage('Login') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'docker-hubregistry', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
-                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
-                    }
-                }
-            }
-        }
-        stage('Push') {
-            steps {
-                sh 'docker push danghoan2308/todoapp:latest'
-            }
-        }
+        // stage('Check Docker Path') {
+        //     steps {
+        //         sh 'echo $PATH'
+        //         sh 'which docker'
+        //     }
+        // }
+        // stage('Build') {
+        //     steps {
+        //         script {
+        //             if (fileExists('/var/run/docker.sock')) {
+        //                 sh 'docker build -t danghoan2308/todoapp:latest .'
+        //             } else {
+        //                 error 'Docker daemon không chạy hoặc không thể truy cập Docker socket.'
+        //             }
+        //         }
+        //     }
+        // }
+        // stage('Login') {
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(credentialsId: 'docker-hubregistry', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+        //                 sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+        //             }
+        //         }
+        //     }
+        // }
+        // stage('Push') {
+        //     steps {
+        //         sh 'docker push danghoan2308/todoapp:latest'
+        //     }
+        // }
     }
 }
