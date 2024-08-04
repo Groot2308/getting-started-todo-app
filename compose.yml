@@ -191,6 +191,7 @@ services:
       - jenkins-data:/var/jenkins_home
     environment:
       - DOCKER_HOST=tcp://localhost:2375
+    privileged: true 
 
        ###################################################
   # Service: sonarqube
