@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    environment{
+    environment {
         DOCKERHUB_CREDENTIALS = credentials('docker-hubregistry')
     }
     stages {
@@ -14,36 +14,46 @@ pipeline {
                 SCANNER_HOME = tool 'scanner'
             }
             steps {
-                withSonarQubeEnv(installationName: 'sonarqubedemo') {
+                withSonarQubeEnv('sonarqubedemo') {
                     sh '''
                     $SCANNER_HOME/bin/sonar-scanner \
                       -Dsonar.projectKey=getting-started-todo-app \
                       -Dsonar.sources=. \
-                      -Dsonar.host.url=http://172.21.0.9:9000 \
-                      -Dsonar.token=squ_32f68c911cdd370eb8dcec9a4b109e30d494b17d
+                      -Dsonar.host.url=http://172.18.0.9:9000 \
+                      -Dsonar.login=squ_32f68c911cdd370eb8dcec9a4b109e30d494b17d
                     '''
                 }
             }
-        }       
+        }
         stage('Check Docker Path') {
             steps {
                 sh 'echo $PATH'
                 sh 'which docker'
             }
-        }         
+        }
         stage('Build') {
             steps {
-                sh 'docker build -t danghoan2308/todoapp:latest .'
+                script {
+                    if (fileExists('/var/run/docker.sock')) {
+                        sh 'docker build -t danghoan2308/todoapp:latest .'
+                    } else {
+                        error 'Docker daemon không chạy hoặc không thể truy cập Docker socket.'
+                    }
+                }
             }
         }
         stage('Login') {
             steps {
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-hubregistry', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                        sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                    }
+                }
             }
         }
         stage('Push') {
             steps {
-               sh 'docker push danghoan2308/todoapp:latest'
+                sh 'docker push danghoan2308/todoapp:latest'
             }
         }
     }
