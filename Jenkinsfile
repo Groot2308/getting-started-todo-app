@@ -3,6 +3,8 @@ pipeline {
     // environment {
     //     DOCKERHUB_CREDENTIALS = credentials('docker-hubregistry')
     // }   
+
+    
     stages {
         stage('Clone repository') {
             steps {

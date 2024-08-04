@@ -189,8 +189,8 @@ services:
       - "50000:50000"
     volumes:
       - jenkins-data:/var/jenkins_home
-    # environment:
-    #   - DOCKER_HOST=tcp://docker:2375
+    environment:
+      - DOCKER_HOST=tcp://docker:2375
        ###################################################
   # Service: sonarqube
   #
