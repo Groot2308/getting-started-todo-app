@@ -190,7 +190,7 @@ services:
     volumes:
       - jenkins-data:/var/jenkins_home
     environment:
-      - DOCKER_HOST=tcp://localhost:2375
+      - DOCKER_HOST=tcp://docker:2375
     privileged: true 
 
        ###################################################
